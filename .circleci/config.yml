@@ -123,16 +123,18 @@ jobs:
       - run:
           name: Backend Audit
           command: |
-            exit 1
-            # cd backend
-            # npm install
-            # npm audit fix --force
-            # npm install --save-dev webpack@5.73.0
-            # npm update mkdirp --depth 2
-            # npm audit --audit-level=critical
+            cd backend
+            npm install
+            npm audit fix --force
+            npm install --save-dev webpack@5.73.0
+            npm update mkdirp --depth 2
+            npm audit --audit-level=critical
       - slack/notify:
           event: fail
           template: basic_fail_1
+      - slack/notify:
+          event: pass
+          template: success_tagged_deploy_1
 
 workflows:
   default:
