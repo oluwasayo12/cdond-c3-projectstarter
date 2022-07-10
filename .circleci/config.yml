@@ -394,13 +394,39 @@ jobs:
             command: |
               if [[ "${CIRCLE_WORKFLOW_ID:0:7}" =~ "${OldWorkflowID}" ]]
               then
+                echo $OldWorkflowID ${CIRCLE_WORKFLOW_ID:0:7}
                 # aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
                 # aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
                 # aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
-                return 0
               else
                 return 1
               fi
+
+  add-prometheus-node-exporter:
+    docker:
+      - image: python:3.10-alpine3.16
+    steps:
+      - checkout
+      - add_ssh_keys:
+           fingerprints: ["ad:b1:3a:7e:75:34:b8:1b:f1:c7:d7:3d:39:7a:70:e2"]
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update aws-cli tar gzip ansible
+      - restore_cache:
+          keys: [backend-build]
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Setup Prometheus Node Exporter
+          command: |
+            cd .circleci/ansible
+            cat inventory.txt
+            ansible-playbook -i inventory.txt node-exporter.yml 
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
 
 workflows:
@@ -434,5 +460,7 @@ workflows:
           requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
           requires: [smoke-test] 
-      - cleanup:
+      - add-prometheus-node-exporter:
           requires: [cloudfront-update]
+      - cleanup:
+          requires: [add-prometheus-node-exporter]
