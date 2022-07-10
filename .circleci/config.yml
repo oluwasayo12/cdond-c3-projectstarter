@@ -209,7 +209,7 @@ jobs:
       - persist_to_workspace:
           root: ~/
           paths:
-            - project/backend/.env
+            - project/backend
 
       - destroy-environment:
           workflow-id: ${CIRCLE_WORKFLOW_ID:0:7} 
@@ -229,6 +229,7 @@ jobs:
           name: Run migrations
           command: |
             cd backend
+            ls -al
             cat .env
             npm install
             npm run build
