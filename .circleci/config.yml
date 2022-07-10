@@ -223,10 +223,13 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update --no-cache tar gzip nodejs npm aws-cli curl
+      - restore_cache:
+          keys: [backend-build]            
       - run:
           name: Run migrations
           command: |
             cd backend
+            cat .env
             npm install
             npm run build
             npm run migrations > migrations_dump.txt
